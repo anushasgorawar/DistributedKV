@@ -2,11 +2,11 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/anushasgorawar/DistributedKV/db"
+	"github.com/anushasgorawar/DistributedKV/web"
 )
 
 var (
@@ -28,28 +28,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("NewDatabase(%q):%v", *dbLocation, err) //if dbLocation is unclear
 	}
+	server := web.NewServer(boltDB)
+	http.HandleFunc("/get", server.GetHandler)
 
-	http.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) {
-		// log.Println("Get function is called")
-		// fmt.Fprintf(w, "Get function is called")
-
-		r.ParseForm()
-		key := r.Form.Get("key")
-		value, err := boltDB.GetKey(key)
-		// w.Write(value)
-		fmt.Fprintf(w, "value=%q, error:%v", value, err)
-	})
-
-	http.HandleFunc("/set", func(w http.ResponseWriter, r *http.Request) {
-		// log.Println("Set function is called")
-		// fmt.Fprintf(w, "Set function is called")
-		r.ParseForm()
-		key := r.Form.Get("key")
-		value := r.Form.Get("value")
-		err := boltDB.SetKey(key, []byte(value))
-		// w.Write(value)
-		fmt.Fprintf(w, "value=%v, error:%v", value, err)
-	})
+	http.HandleFunc("/set", server.SetHandler)
 
 	log.Fatal(http.ListenAndServe(*httpAddr, nil))
 }
