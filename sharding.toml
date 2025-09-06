@@ -1,0 +1,15 @@
+[[shards]]
+name = "name"
+idx = 0
+
+[[shards]]
+name = "place"
+idx = 1
+
+[[shards]]
+name = "animal"
+idx = 2
+
+[[shards]]
+name = "thing"
+idx = 3
