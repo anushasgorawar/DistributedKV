@@ -34,28 +34,34 @@ func main() {
 	if _, err := toml.DecodeFile(*configFile, &c); err != nil {
 		log.Fatalf("Unable to decode config File %v, error: %v", *configFile, err)
 	}
-
 	//to see if config is parsed properly
 	// log.Printf("%#v", &c)
 
-	var shardCount int
-	var shardIndex int = -1
-	addrs := make(map[int]string)
-	shardCount = len(c.Shards)
-	for _, s := range c.Shards {
-		addrs[s.Idx] = s.Addr
-		if s.Idx+1 > shardCount {
-			shardCount = s.Idx + 1
-		}
-		if s.Name == *shard {
-			shardIndex = s.Idx
-		}
-	}
-	if shardIndex == -1 {
-		log.Fatal("Shard not found.")
+	shards, err := config.ParseShards(c.Shards, *shard)
+	if err != nil {
+		log.Fatalf("Unable to parse shards: %v", err)
 	}
 
-	log.Printf("Total shards: %v, current shard: %v, index: %v", shardCount, *shard, shardIndex)
+	log.Printf("%#v", &shards)
+
+	// var shardCount int
+	// var shardIndex int = -1
+	// addrs := make(map[int]string)
+	// shardCount = len(c.Shards)
+	// for _, s := range c.Shards {
+	// 	addrs[s.Idx] = s.Addr
+	// 	if s.Idx+1 > shardCount {
+	// 		shardCount = s.Idx + 1
+	// 	}
+	// 	if s.Name == *shard {
+	// 		shardIndex = s.Idx
+	// 	}
+	// }
+	// if shardIndex == -1 {
+	// 	log.Fatal("Shard not found.")
+	// }
+
+	// log.Printf("Total shards: %v, current shard: %v, index: %v", shardCount, *shard, shardIndex)
 
 	boltDB, closefunc, err := db.NewDatabase(*dbLocation)
 	defer closefunc()
@@ -63,7 +69,7 @@ func main() {
 		log.Fatalf("NewDatabase(%q):%v", *dbLocation, err) //if dbLocation is unclear
 	}
 
-	server := web.NewServer(boltDB, shardCount, shardIndex, addrs)
+	server := web.NewServer(boltDB, shards)
 	http.HandleFunc("/get", server.GetHandler)
 
 	http.HandleFunc("/set", server.SetHandler)
