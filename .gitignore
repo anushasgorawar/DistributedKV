@@ -36,4 +36,4 @@ notes.txt
 DistributedKV
 go.sum
 go.mod
-my.db
+*.db

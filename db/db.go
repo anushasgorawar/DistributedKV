@@ -26,8 +26,6 @@ func (d *Database) createDefaultBucket() error {
 
 // New database instance
 func NewDatabase(dbLocation string) (db *Database, closeFunc func() error, err error) {
-	fmt.Println("Hello world")
-
 	//open a db
 	boltDB, err := bolt.Open(dbLocation, 0600, nil)
 	if err != nil {

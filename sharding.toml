@@ -1,15 +1,19 @@
 [[shards]]
 name = "name"
 idx = 0
+addr = "127.0.0.1:8081"
 
 [[shards]]
 name = "place"
 idx = 1
+addr = "127.0.0.1:8082"
 
 [[shards]]
 name = "animal"
 idx = 2
+addr = "127.0.0.1:8083"
 
 [[shards]]
 name = "thing"
 idx = 3
+addr = "127.0.0.1:8084"
