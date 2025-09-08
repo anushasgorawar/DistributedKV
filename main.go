@@ -47,7 +47,7 @@ func main() {
 		log.Fatalf("Unable to parse shards: %v", err)
 	}
 
-	log.Printf("%#v", &shards)
+	log.Printf("%#v", shards)
 
 	boltDB, closefunc, err := db.NewDatabase(*dbLocation)
 	defer closefunc()
