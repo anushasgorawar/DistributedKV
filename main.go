@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/BurntSushi/toml"
 	"github.com/anushasgorawar/DistributedKV/config"
 	"github.com/anushasgorawar/DistributedKV/db"
 	"github.com/anushasgorawar/DistributedKV/web"
@@ -31,10 +30,16 @@ func main() {
 	var c config.Config
 	// log.Printf("%#v", &c)
 
-	if _, err := toml.DecodeFile(*configFile, &c); err != nil {
-		log.Fatalf("Unable to decode config File %v, error: %v", *configFile, err)
-	}
+	// if _, err := toml.DecodeFile(*configFile, &c); err != nil {
+	// 	log.Fatalf("Unable to decode config File %v, error: %v", *configFile, err)
+	// }
 	//to see if config is parsed properly
+
+	c, err := config.ParseConfig(*configFile)
+	if err != nil {
+		log.Fatal("Error parsing the Config file: ", err)
+	}
+
 	// log.Printf("%#v", &c)
 
 	shards, err := config.ParseShards(c.Shards, *shard)
@@ -43,25 +48,6 @@ func main() {
 	}
 
 	log.Printf("%#v", &shards)
-
-	// var shardCount int
-	// var shardIndex int = -1
-	// addrs := make(map[int]string)
-	// shardCount = len(c.Shards)
-	// for _, s := range c.Shards {
-	// 	addrs[s.Idx] = s.Addr
-	// 	if s.Idx+1 > shardCount {
-	// 		shardCount = s.Idx + 1
-	// 	}
-	// 	if s.Name == *shard {
-	// 		shardIndex = s.Idx
-	// 	}
-	// }
-	// if shardIndex == -1 {
-	// 	log.Fatal("Shard not found.")
-	// }
-
-	// log.Printf("Total shards: %v, current shard: %v, index: %v", shardCount, *shard, shardIndex)
 
 	boltDB, closefunc, err := db.NewDatabase(*dbLocation)
 	defer closefunc()

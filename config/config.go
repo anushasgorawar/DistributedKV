@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"hash/fnv"
 	"log"
+
+	"github.com/BurntSushi/toml"
 )
 
 type Shard struct {
@@ -21,6 +23,15 @@ type Shards struct {
 	Count   int
 	CurrInd int
 	Addrs   map[int]string
+}
+
+func ParseConfig(configFile string) (Config, error) {
+	var c Config
+	if _, err := toml.DecodeFile(configFile, &c); err != nil {
+		log.Fatalf("Unable to decode config File %v, error: %v", configFile, err)
+		return Config{}, err
+	}
+	return c, nil
 }
 
 func ParseShards(shards []Shard, currShardName string) (*Shards, error) {

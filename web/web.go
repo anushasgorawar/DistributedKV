@@ -54,6 +54,7 @@ func (d *Server) GetHandler(w http.ResponseWriter, r *http.Request) {
 	key := r.Form.Get("key")
 
 	shardIdx := d.shards.GetShard(key)
+	
 	value, err := d.db.GetKey(key)
 
 	// fmt.Fprintf(w, "shard=%v currShard=%v addr=%v value=%q, error:%v", shardIdx, d.shardIndex, d.addr[shardIdx], value, err)
