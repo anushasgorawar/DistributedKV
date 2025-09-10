@@ -54,17 +54,16 @@ func (d *Server) GetHandler(w http.ResponseWriter, r *http.Request) {
 	key := r.Form.Get("key")
 
 	shardIdx := d.shards.GetShard(key)
-	
-	value, err := d.db.GetKey(key)
 
 	// fmt.Fprintf(w, "shard=%v currShard=%v addr=%v value=%q, error:%v", shardIdx, d.shardIndex, d.addr[shardIdx], value, err)
 
 	if shardIdx != d.shards.CurrInd {
 		d.handle(w, shardIdx, r)
 		return
+	} else {
+		value, err := d.db.GetKey(key)
+		fmt.Fprintf(w, "shard=%v addr=%v value=%q, error:%v", shardIdx, d.shards.Addrs[shardIdx], value, err)
 	}
-	fmt.Fprintf(w, "shard=%v addr=%v value=%q, error:%v", shardIdx, d.shards.Addrs[shardIdx], value, err)
-
 }
 
 // Handles "set" endpoint
@@ -78,8 +77,9 @@ func (d *Server) SetHandler(w http.ResponseWriter, r *http.Request) {
 
 	if shardIdx != d.shards.CurrInd {
 		d.handle(w, shardIdx, r)
-	}
-	err := d.db.SetKey(key, []byte(value))
+	} else {
+		err := d.db.SetKey(key, []byte(value))
 
-	fmt.Fprintf(w, "shard=%v addr=%v value=%q, error:%v", shardIdx, d.shards.Addrs[shardIdx], value, err)
+		fmt.Fprintf(w, "shard=%v addr=%v value=%q, error:%v", shardIdx, d.shards.Addrs[shardIdx], value, err)
+	}
 }
