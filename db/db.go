@@ -68,3 +68,29 @@ func (d *Database) GetKey(key string) ([]byte, error) {
 	return nil, err
 
 }
+
+func (d *Database) Purge(isExtra func(string) bool) error {
+	var keys []string
+	err := d.db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(defaultBucket)
+		return bucket.ForEach(func(k, v []byte) error {
+			if isExtra(string(k)) {
+				keys = append(keys, string(k))
+			}
+			return nil
+		})
+	})
+	if err != nil {
+		log.Fatal("Could not list keys: ", err)
+	}
+	return d.db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(defaultBucket)
+		for _, key := range keys {
+			if err := bucket.Delete([]byte(key)); err != nil {
+				log.Fatal("Could not delete key: ", err)
+				return err
+			}
+		}
+		return nil
+	})
+}

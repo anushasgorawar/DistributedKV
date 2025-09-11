@@ -60,6 +60,7 @@ func main() {
 
 	http.HandleFunc("/set", server.SetHandler)
 
+	http.HandleFunc("/purge", server.PurgeHandler)
+
 	log.Fatal(http.ListenAndServe(*httpAddr, nil))
 }
- 

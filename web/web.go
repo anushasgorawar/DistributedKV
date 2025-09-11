@@ -83,3 +83,10 @@ func (d *Server) SetHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "shard=%v addr=%v value=%q, error:%v", shardIdx, d.shards.Addrs[shardIdx], value, err)
 	}
 }
+func (d *Server) PurgeHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Delete Extra Keys Function is called")
+	err := d.db.Purge(func(key string) bool {
+		return d.shards.CurrInd != d.shards.GetShard(key)
+	})
+	fmt.Fprintf(w, "err=%v", err)
+}
