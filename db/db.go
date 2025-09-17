@@ -32,7 +32,7 @@ func NewDatabase(dbLocation string) (db *Database, closeFunc func() error, err e
 		log.Fatal(err)
 		return nil, nil, err
 	}
-	boltDB.NoSync = true
+	// boltDB.NoSync = true // flushing data to boltdb for every write is disabled
 	// create a db struct
 	db = &Database{db: boltDB}
 	closeFunc = boltDB.Close
