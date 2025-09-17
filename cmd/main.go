@@ -15,7 +15,7 @@ import (
 const N = 10
 
 var (
-	addr           = flag.String("http-address", "127.0.0.1:8081", "HTTP Host and Port")
+	addr           = flag.String("http-address", "127.0.0.3:8080", "HTTP Host and Port")
 	iterations     = flag.Int("iterations", 100, "Number of Iterations for writing")
 	readIterations = flag.Int("readIterations", 100, "Number of Iterations for reading")
 	concurrency    = flag.Int("concurrency", 5, "Number of concurrnt go functions")
