@@ -2,18 +2,22 @@
 name = "name"
 idx = 0
 addr = "127.0.0.2:8080"
+replica-addr = "127.0.0.22:8080"
 
 [[shards]]
 name = "place"
 idx = 1
 addr = "127.0.0.3:8080"
+replica-addr = "127.0.0.33:8080"
 
 [[shards]]
 name = "animal"
 idx = 2
 addr = "127.0.0.4:8080"
+replica-addr = "127.0.0.44:8080"
 
 [[shards]]
 name = "thing"
 idx = 3
 addr = "127.0.0.5:8080"
+replica-addr = "127.0.0.55:8080"

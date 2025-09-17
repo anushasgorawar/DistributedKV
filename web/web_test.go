@@ -30,7 +30,7 @@ import (
 func createShardDb(t *testing.T, idx int) *db.Database {
 	t.Helper()
 
-	tmpFile, err := ioutil.TempFile(os.TempDir(), fmt.Sprintf("db%d", idx))
+	tmpFile, err := os.CreateTemp(os.TempDir(), fmt.Sprintf("db%d", idx))
 	if err != nil {
 		t.Fatalf("Could not create a temp db %d: %v", idx, err)
 	}
@@ -38,9 +38,10 @@ func createShardDb(t *testing.T, idx int) *db.Database {
 	tmpFile.Close()
 
 	name := tmpFile.Name()
+	replica := false
 	t.Cleanup(func() { os.Remove(name) })
 
-	db, closeFunc, err := db.NewDatabase(name)
+	db, closeFunc, err := db.NewDatabase(name, replica)
 	if err != nil {
 		t.Fatalf("Could not create new database %q: %v", name, err)
 	}

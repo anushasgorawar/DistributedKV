@@ -15,6 +15,7 @@ var (
 	httpAddr   = flag.String("http-address", "127.0.0.1:8080", "HTTP Host and Port")
 	configFile = flag.String("config-file", "sharding.toml", "config file for shards")
 	shard      = flag.String("shard", "", "The name of the shard for they key-value")
+	replica    = flag.Bool("replica", false, "enable to run as a replica")
 )
 
 func parseFlags() {
@@ -49,7 +50,7 @@ func main() {
 
 	log.Printf("%#v", shards)
 
-	boltDB, closefunc, err := db.NewDatabase(*dbLocation)
+	boltDB, closefunc, err := db.NewDatabase(*dbLocation, *replica)
 	defer closefunc()
 	if err != nil {
 		log.Fatalf("NewDatabase(%q):%v", *dbLocation, err) //if dbLocation is unclear

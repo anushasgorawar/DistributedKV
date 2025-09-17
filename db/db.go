@@ -1,6 +1,8 @@
 package db
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"log"
 
@@ -9,23 +11,30 @@ import (
 
 var (
 	defaultBucket = []byte("default")
+	replicaBucket = []byte("replica")
 )
 
 // A bolt database
 type Database struct {
-	db *bolt.DB
+	db       *bolt.DB
+	readOnly bool //true if replica
 }
 
 // a function to create a bucket in BoltDB
-func (d *Database) createDefaultBucket() error {
-	return d.db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists(defaultBucket)
+func (d *Database) createBuckets() error {
+	return d.db.Update(func(tx *bolt.Tx) (err error) {
+		if _, err := tx.CreateBucketIfNotExists(defaultBucket); err != nil {
+			return err
+		}
+		if _, err := tx.CreateBucketIfNotExists(replicaBucket); err != nil {
+			return err
+		}
 		return err
 	})
 }
 
 // New database instance
-func NewDatabase(dbLocation string) (db *Database, closeFunc func() error, err error) {
+func NewDatabase(dbLocation string, readOnly bool) (db *Database, closeFunc func() error, err error) {
 	//open a db
 	boltDB, err := bolt.Open(dbLocation, 0600, nil)
 	if err != nil {
@@ -34,23 +43,27 @@ func NewDatabase(dbLocation string) (db *Database, closeFunc func() error, err e
 	}
 	// boltDB.NoSync = true // flushing data to boltdb for every write is disabled
 	// create a db struct
-	db = &Database{db: boltDB}
+	db = &Database{db: boltDB, readOnly: readOnly}
 	closeFunc = boltDB.Close
 
 	//create a bucket
-	if err := db.createDefaultBucket(); err != nil {
+	if err := db.createBuckets(); err != nil {
 		closeFunc()
-		return nil, nil, fmt.Errorf("createDefaultBucket() failed")
+		return nil, nil, fmt.Errorf("createBuckets() failed")
 	}
 	return db, closeFunc, nil
 }
 
 // SetKey sets a key to a value, else, returns an error
 func (d *Database) SetKey(key string, value []byte) error {
-	return d.db.Update(func(tx *bolt.Tx) error {
-
-		bucket := tx.Bucket(defaultBucket)
-		return bucket.Put([]byte(key), value)
+	if d.readOnly {
+		return errors.New("read-only mode")
+	}
+	return d.db.Update(func(tx *bolt.Tx) (err error) {
+		if err := tx.Bucket(defaultBucket).Put([]byte(key), value); err != nil {
+			return err
+		}
+		return tx.Bucket(replicaBucket).Put([]byte(key), value)
 	})
 }
 
@@ -92,5 +105,20 @@ func (d *Database) Purge(isExtra func(string) bool) error {
 			}
 		}
 		return nil
+	})
+}
+
+func (d *Database) DeleteReplicatedKey(key, value []byte) (err error) {
+	return d.db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(defaultBucket)
+
+		v := bucket.Get([]byte(key)) //returns null if not exists
+		if v == nil {
+			return nil
+		}
+		if bytes.Equal(v, value) {
+			return errors.New("values do not match")
+		}
+		return bucket.Delete(key)
 	})
 }

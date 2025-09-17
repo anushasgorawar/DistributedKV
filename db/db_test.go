@@ -8,15 +8,21 @@ import (
 	"github.com/anushasgorawar/DistributedKV/db"
 )
 
-func TestSetGet(t *testing.T) {
+func createDatabase(t *testing.T, readOnly bool) *db.Database {
+	t.Helper()
 	dbName := "test.db"
 	defer os.Remove(dbName)
-	newDB, closeFunc, err := db.NewDatabase(dbName)
+	newDB, closeFunc, err := db.NewDatabase(dbName, readOnly)
 	if err != nil {
 		t.Errorf("could not create db: %q", err.Error())
 	}
-	defer closeFunc()
-	err = newDB.SetKey("table", []byte("Round"))
+	// defer closeFunc()
+	t.Cleanup(func() { closeFunc() })
+	return newDB
+}
+func TestSetGet(t *testing.T) {
+	newDB := createDatabase(t, false)
+	err := newDB.SetKey("table", []byte("Round"))
 	if err != nil {
 		t.Errorf("could not set key: %q", err.Error())
 	}
@@ -31,11 +37,19 @@ func TestSetGet(t *testing.T) {
 	}
 }
 
+func TestReplicaSet(t *testing.T) {
+	newDB := createDatabase(t, true)
+	recieved := newDB.SetKey("table", []byte("Round"))
+	if recieved == nil {
+		t.Errorf("could set key in replica shard: %q", recieved)
+	}
+}
+
 func getKey(t *testing.T, db *db.Database, key string) string {
 	t.Helper()
 	value, err := db.GetKey(key)
 	if err != nil {
-		t.Errorf("Could not set key")
+		t.Errorf("Could not get key")
 	}
 	return string(value)
 }
@@ -46,25 +60,16 @@ func setKey(t *testing.T, db *db.Database, key, value string) {
 	}
 }
 func TestPurge(t *testing.T) {
-	dbName := "test.db"
-	defer os.Remove(dbName)
-	newDB, closeFunc, err := db.NewDatabase(dbName)
-	if err != nil {
-		t.Errorf("could not create db: %q", err.Error())
-	}
-	defer closeFunc()
+	newDB := createDatabase(t, false)
 	setKey(t, newDB, "table", "Round")
 	setKey(t, newDB, "monitor", "rectangle")
 
 	value := getKey(t, newDB, "table")
-	if err != nil {
-		t.Errorf("could not find key: %q", err)
-	}
 	if value != "Round" {
 		t.Errorf("Could not get key")
 	}
 
-	if err = newDB.Purge(func(key string) bool { return key == "table" }); err != nil {
+	if err := newDB.Purge(func(key string) bool { return key == "table" }); err != nil {
 		t.Errorf("Could not delete keys")
 	}
 	if value = getKey(t, newDB, "Round"); value != "" {
@@ -73,4 +78,8 @@ func TestPurge(t *testing.T) {
 	if value = getKey(t, newDB, "table"); value != "" {
 		t.Errorf("Failed to delete keys")
 	}
+}
+
+func TestDeletereadOnlytedKey(t *testing.T) {
+
 }
