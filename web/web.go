@@ -110,3 +110,21 @@ func (d *Server) NextreplicationKeyHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 	}
 }
+
+func (d *Server) DeletenextreplicationKeyHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Delete Next replication Key Function is called")
+	r.ParseForm()
+
+	key := r.Form.Get("key")
+	value := r.Form.Get("value")
+
+	err := d.db.DeleteReplicatedKey([]byte(key), []byte(value))
+	if err != nil {
+		w.WriteHeader(http.StatusExpectationFailed)
+		fmt.Fprintf(w, "error: %v", err)
+		return
+	}
+
+	fmt.Fprintf(w, "ok")
+
+}
