@@ -1,6 +1,7 @@
 package db_test
 
 import (
+	"bytes"
 	"os"
 	"reflect"
 	"testing"
@@ -80,6 +81,34 @@ func TestPurge(t *testing.T) {
 	}
 }
 
-func TestDeletereadOnlytedKey(t *testing.T) {
+func TestDeleteReplicationKey(t *testing.T) {
+	db := createDatabase(t, false)
 
+	setKey(t, db, "party", "Great")
+
+	k, v, err := db.GetNextKeyForReplication()
+	if err != nil {
+		t.Fatalf(`Unexpected error for GetNextKeyForReplication(): %v`, err)
+	}
+
+	if !bytes.Equal(k, []byte("party")) || !bytes.Equal(v, []byte("Great")) {
+		t.Errorf(`GetNextKeyForReplication(): got %q, %q; want %q, %q`, k, v, "party", "Great")
+	}
+
+	if err := db.DeleteReplicatedKey([]byte("party"), []byte("Bad")); err == nil {
+		t.Fatalf(`DeleteReplicationKey("party", "Bad"): got nil error, want non-nil error`)
+	}
+
+	if err := db.DeleteReplicatedKey([]byte("party"), []byte("Great")); err != nil {
+		t.Fatalf(`DeleteReplicationKey("party", "Great"): got %q, want nil error`, err)
+	}
+
+	k, v, err = db.GetNextKeyForReplication()
+	if err != nil {
+		t.Fatalf(`Unexpected error for GetNextKeyForReplication(): %v`, err)
+	}
+
+	if k != nil || v != nil {
+		t.Errorf(`GetNextKeyForReplication(): got %v, %v; want nil, nil`, k, v)
+	}
 }

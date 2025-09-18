@@ -62,6 +62,7 @@ func main() {
 	http.HandleFunc("/set", server.SetHandler)
 
 	http.HandleFunc("/purge", server.PurgeHandler)
+	http.HandleFunc("/next-replication-key",server.NextreplicationKeyHandler)
 
 	log.Fatal(http.ListenAndServe(*httpAddr, nil))
 }

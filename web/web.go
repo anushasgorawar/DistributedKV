@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -89,4 +90,23 @@ func (d *Server) PurgeHandler(w http.ResponseWriter, r *http.Request) {
 		return d.shards.CurrInd != d.shards.GetShard(key)
 	})
 	fmt.Fprintf(w, "err=%v", err)
+}
+
+type NextKeyValue struct {
+	Key   string
+	Value string
+	Err   error
+}
+
+func (d *Server) NextreplicationKeyHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Get Next replication Key Function is called")
+	enc := json.NewEncoder(w)
+	key, value, err := d.db.GetNextKeyForReplication()
+	enc.Encode(&NextKeyValue{
+		Key:   string(key),
+		Value: string(value),
+		Err:   err,
+	}) //{"Key":"moon","Value":"full","Err":null}
+	if err != nil {
+	}
 }

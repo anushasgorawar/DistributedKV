@@ -108,17 +108,44 @@ func (d *Database) Purge(isExtra func(string) bool) error {
 	})
 }
 
+func copyByteSlice(b []byte) []byte {
+	if b == nil {
+		return nil
+	}
+	res := make([]byte, len(b))
+	copy(res, b)
+	return res
+}
+
+func (d *Database) GetNextKeyForReplication() (key, value []byte, err error) {
+	err = d.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(replicaBucket)
+		k, v := b.Cursor().First()
+		key = copyByteSlice(k)   //values are only valid as long as the transaction is open.
+		value = copyByteSlice(v) //values are only valid as long as the transaction is open.
+		return nil
+	})
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return key, value, nil
+}
+
 func (d *Database) DeleteReplicatedKey(key, value []byte) (err error) {
 	return d.db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(defaultBucket)
+		b := tx.Bucket(replicaBucket)
 
-		v := bucket.Get([]byte(key)) //returns null if not exists
+		v := b.Get(key)
 		if v == nil {
-			return nil
+			return errors.New("key does not exist")
 		}
-		if bytes.Equal(v, value) {
-			return errors.New("values do not match")
+
+		if !bytes.Equal(v, value) {
+			return errors.New("value does not match")
 		}
-		return bucket.Delete(key)
+
+		return b.Delete(key)
 	})
 }
