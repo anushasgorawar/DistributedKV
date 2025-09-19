@@ -775,6 +775,9 @@ shard=3 addr=127.0.0.5:8080 value="moon", error:<nil>%
 
 2. I'll delete the 4th db and try the same query.
 launched again.
+
+3. Error:
+
 (base) anushasg@Anushas-MacBook-Air DistributedKV % curl 'http://127.0.0.55:8080/get?key=earth'
 curl: (7) Failed to connect to 127.0.0.55 port 8080 after 1 ms: Couldn't connect to server
 Might have to close that connection before I start
@@ -783,3 +786,10 @@ Had to run: killall DistributedKV
 (base) anushasg@Anushas-MacBook-Air DistributedKV % curl 'http://127.0.0.55:8080/get?key=earth'
 shard=3 addr=127.0.0.5:8080 value="moon", error:<nil>%  
 Works!
+
+4. It is available when I query from the replica and not the leader.
+(base) anushasg@Anushas-MacBook-Air DistributedKV % curl 'http://127.0.0.55:8080/get?key=earth'
+shard=3 addr=127.0.0.5:8080 value="moon", error:<nil>%                                                                      
+(base) anushasg@Anushas-MacBook-Air DistributedKV % curl 'http://127.0.0.5:8080/get?key=earth' 
+shard=3 addr=127.0.0.5:8080 value="", error:<nil>% 
+
