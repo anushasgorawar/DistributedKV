@@ -30,8 +30,7 @@ DistributedKV --db-location="place.db" --http-address=127.0.0.3:8080 --config-fi
 DistributedKV --db-location="place-replica.db" --http-address=127.0.0.33:8080 --config-file="sharding.toml" --shard="place" --replica &
 DistributedKV --db-location="animal.db" --http-address=127.0.0.4:8080 --config-file="sharding.toml" --shard="animal" &
 DistributedKV --db-location="animal-replica.db" --http-address=127.0.0.44:8080 --config-file="sharding.toml" --shard="animal" --replica &
-DistributedKV --db-location="thing-replica.db" --http-address=127.0.0.55:8080 --config-file="sharding.toml" --shard="thing" --replica &
 DistributedKV --db-location="thing.db" --http-address=127.0.0.5:8080 --config-file="sharding.toml" --shard="thing" &
-
+DistributedKV --db-location="thing-replica.db" --http-address=127.0.0.55:8080 --config-file="sharding.toml" --shard="thing" --replica &
 
 wait
