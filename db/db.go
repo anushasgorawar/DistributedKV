@@ -59,10 +59,17 @@ func (d *Database) SetKey(key string, value []byte) error {
 	if d.readOnly {
 		return errors.New("read-only mode")
 	}
-	return d.db.Update(func(tx *bolt.Tx) (err error) {
+	return d.db.Update(func(tx *bolt.Tx) error {
 		if err := tx.Bucket(defaultBucket).Put([]byte(key), value); err != nil {
 			return err
 		}
+		return tx.Bucket(replicaBucket).Put([]byte(key), value)
+	})
+}
+
+// SetKey sets a key to a value, else, returns an error into the default db
+func (d *Database) ReplicaSetKey(key string, value []byte) error {
+	return d.db.Update(func(tx *bolt.Tx) error {
 		return tx.Bucket(replicaBucket).Put([]byte(key), value)
 	})
 }

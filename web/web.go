@@ -9,6 +9,7 @@ import (
 
 	"github.com/anushasgorawar/DistributedKV/config"
 	"github.com/anushasgorawar/DistributedKV/db"
+	"github.com/anushasgorawar/DistributedKV/replication"
 )
 
 // Serve contains http method handlers to be used for the db
@@ -92,23 +93,15 @@ func (d *Server) PurgeHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "err=%v", err)
 }
 
-type NextKeyValue struct {
-	Key   string
-	Value string
-	Err   error
-}
-
 func (d *Server) NextreplicationKeyHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Get Next replication Key Function is called")
+	// log.Println("Get Next replication Key Function is called") //noise
 	enc := json.NewEncoder(w)
 	key, value, err := d.db.GetNextKeyForReplication()
-	enc.Encode(&NextKeyValue{
+	enc.Encode(&replication.NextKeyValue{
 		Key:   string(key),
 		Value: string(value),
 		Err:   err,
 	}) //{"Key":"moon","Value":"full","Err":null}
-	if err != nil {
-	}
 }
 
 func (d *Server) DeletenextreplicationKeyHandler(w http.ResponseWriter, r *http.Request) {

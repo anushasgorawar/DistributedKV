@@ -7,6 +7,7 @@ import (
 
 	"github.com/anushasgorawar/DistributedKV/config"
 	"github.com/anushasgorawar/DistributedKV/db"
+	"github.com/anushasgorawar/DistributedKV/replication"
 	"github.com/anushasgorawar/DistributedKV/web"
 )
 
@@ -54,6 +55,13 @@ func main() {
 	defer closefunc()
 	if err != nil {
 		log.Fatalf("NewDatabase(%q):%v", *dbLocation, err) //if dbLocation is unclear
+	}
+	if *replica {
+		leaderAddr, ok := shards.Addrs[shards.CurrInd]
+		if !ok {
+			log.Fatalf("leader shard not found")
+		}
+		go replication.Clientloop(boltDB, leaderAddr)
 	}
 
 	server := web.NewServer(boltDB, shards)
